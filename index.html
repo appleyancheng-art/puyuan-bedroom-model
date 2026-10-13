@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f4f3ed"><meta name="description" content="3800 × 5500 卧室，入口两米衣帽间。交互探索 A、B 两版布局，旋转、剖切、开柜和爆炸拆解。">
+<title>濮院卧室 · 空间推演</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23304b3e'/%3E%3Cpath d='M17 16h30v32H17zM27 16v32M37 16v32' fill='none' stroke='%23f4f3ed' stroke-width='3'/%3E%3C/svg%3E"><link rel="stylesheet" href="./style.css">
+<link rel="stylesheet" href="./iphone.css"><script type="importmap">{"imports":{"three":"./three.module.js"}}</script>
+</head>
+<body>
+<header class="topbar"><a class="brand" href="./" aria-label="回到初始视图"><span class="brand-icon">▥</span><span>空间推演<small>PUYUAN / ROOM STUDY</small></span></a><div class="project-meta">一间卧室，两种生活方式 <span>01 — 02</span></div><div class="top-actions"><button id="snapshot" class="quiet">保存视图</button><button id="share" class="primary">分享方案 <span>↗</span></button></div></header>
+<main>
+<aside class="sidebar" aria-label="方案与模型控制"><div class="sheet-handle"><span>空间控制</span><button id="close-sheet" aria-label="收起控制面板">×</button></div>
+<div class="eyebrow">THE TWO-METRE DRESSING ROOM</div><h1>把生活，<br>安排得刚刚好。</h1><p class="intro">入口 2 米衣帽区，床头靠柜背。<br>亲自走近每一处空间关系。</p>
+<div class="plan-switch" role="group" aria-label="选择方案"><button data-plan="A" class="active" aria-pressed="true"><b>A</b><span>双侧通行<small>舒适优先</small></span></button><button data-plan="B" aria-pressed="false"><b>B</b><span>长排背柜<small>收纳优先</small></span></button></div>
+<div class="measure-row"><span><strong>20.9<small>㎡</small></strong>房间面积</span><span><strong>2.0<small>m</small></strong>衣帽区进深</span><span><strong id="wardrobe-width">2.0<small>m</small></strong>主衣柜总宽</span></div>
+<section class="finish-controls" id="finish-controls"><div class="section-label">墙面 · 窗帘 · 吊顶 <span>FINISH & LAYERS</span></div><div class="finish-switch"><button data-theme="oak" class="active"><i></i>浅橡暖白</button><button data-theme="walnut"><i></i>胡桃暖灰</button></div><label class="select-row" for="ceiling">吊顶显示<select id="ceiling"><option value="outline">吊顶轮廓</option><option value="full">完整吊顶</option><option value="off">隐藏顶面</option></select></label><label class="range-control">布帘打开 <input id="curtain" type="range" min="0" max="100" value="85"><output id="curtain-value">85%</output></label><label class="toggle-row"><span>纱帘</span><input id="sheer" type="checkbox" checked><i></i></label></section><section class="controls"><div class="section-label">观察方式 <span>VIEW SETTINGS</span></div>
+<label class="select-row" for="walls">外墙显示<select id="walls"><option value="low">低墙 · 通透观察</option><option value="full">完整墙体</option><option value="off">隐藏外墙</option></select></label>
+<label class="toggle-row"><span>剖切柜体<small>打开上部，查看内部布局</small></span><input id="cut" type="checkbox"><i></i></label>
+<label class="toggle-row"><span>打开柜门<small>查看挂衣、层板与抽屉</small></span><input id="doors" type="checkbox"><i></i></label>
+<label class="toggle-row"><span>尺寸与动线</span><input id="dimensions" type="checkbox" checked><i></i></label>
+<label class="toggle-row"><span>人物与坐姿空间<small>站姿 1.70 m，仅为比例参照</small></span><input id="person" type="checkbox"><i></i></label>
+</section>
+<section class="inspector" id="inspector" aria-live="polite"><div class="section-label">空间笔记 <span id="selected-tag">方案 A</span></div><h2 id="part-title">左侧换衣，右侧化妆</h2><p id="part-description">主衣柜居中，化妆台放在右侧末端。坐下化妆时，另一人仍可从左侧拿取衣物。</p><div id="part-dimensions" class="part-dimensions">两侧通道 900 · 换衣净深 900</div><button id="clear-selection" class="text-button" hidden>取消部件选择 ↗</button></section>
+<button id="about" class="about-button">尺寸依据与模型说明 <span>＋</span></button>
+</aside>
+<section class="stage" aria-label="交互式三维模型">
+<div class="stage-heading"><div><span class="eyebrow">INTERACTIVE SPATIAL MODEL</span><h2><span id="stage-plan">A</span><span id="stage-name">中置背柜 · 双侧通行</span></h2></div><span class="concept-tag">概念模型 · 非施工图</span></div>
+<div class="mobile-plan-switch" role="group" aria-label="快速切换方案"><button data-plan="A" aria-pressed="true" class="active">A</button><button data-plan="B" aria-pressed="false">B</button></div><div id="viewport"><div id="loading"><span class="loading-mark"></span><p>正在搭建你的空间…</p></div><div id="labels" aria-hidden="true"></div></div>
+<div class="view-toolbar" role="group" aria-label="预设视角"><button data-view="iso" class="active" aria-pressed="true">轴测</button><button data-view="top" aria-pressed="false">俯视</button><button data-view="entry" aria-pressed="false">入口</button><button data-view="window" aria-pressed="false">窗侧</button><span></span><button id="reset" title="复位所有设置">↺<span class="sr-only">复位</span></button><button id="fullscreen" title="全屏查看">⛶<span class="sr-only">全屏</span></button></div>
+<div class="zoom-tools"><button id="zoom-in" aria-label="放大">＋</button><button id="zoom-out" aria-label="缩小">−</button></div>
+<div class="stage-bottom"><div class="explode-panel"><div class="explode-heading"><span class="explode-icon">◇</span><div><strong>爆炸拆解</strong><small id="explode-note">从整体，看到每一层关系</small></div><button id="animate-explode" aria-label="自动演示拆解">演示 ↗</button></div><div class="range-row"><span>完整</span><input id="explode" type="range" min="0" max="100" step="1" value="0" aria-label="爆炸拆解程度"><output id="explode-value">0%</output></div></div><p class="interaction-help"><span class="desktop-help">拖动旋转 · 滚轮缩放 · 右键平移 · 点击部件查看</span><span class="mobile-help">单指旋转 · 双指缩放与平移 · 点选部件</span></p></div>
+<div class="scale-note"><div id="scale-bar"><b></b><b></b><b></b><b></b></div><span id="scale-text">1 m · 地面中心投影参考</span></div>
+</section>
+</main>
+<nav class="mobile-dock" aria-label="模型快捷操作"><button data-sheet="plans">▥<span>方案</span></button><button data-sheet="finishes">▧<span>材质</span></button><button data-sheet="more">☷<span>更多</span></button></nav><div class="sheet-scrim" id="sheet-scrim"></div><div id="toast" role="status"></div>
+<dialog id="about-dialog"><button class="dialog-close" aria-label="关闭说明">×</button><div class="eyebrow">MODEL NOTES</div><h2>有依据，也留有余地。</h2><p>平面依据为用户提供图纸第 4 页：房间 3800 × 5505 mm、左下侧入口约 875 mm。本模型按 3800 × 5500 mm 推演，保持原入口、窗侧与柱位关系。</p><dl><dt>已纳入计算</dt><dd>衣帽区总进深 2000；床垫 1800 × 2000；床架 1900 × 2100；柜深 600；柜背构造预留 50；窗帘预留 150。床尾至窗帘前约 1250。</dd><dt>三维示意假设</dt><dd>原图吊顶主要标高为入口 2500、主区 2800；窗侧盒体标高按原图 2900 示意。主柜高 2400、台面高 750、次净衣柜高 2100、窗台高 850 和窗高 1850 为三维提案，窗立面与柜内分格待现场复核。</dd><dt>模型显示</dt><dd>使用均匀环境光观察空间，不展示灯具、灯带和开灯效果。吊顶、墙体、窗帘、家具及各层拆解保留。</dd><dt>比例尺</dt><dd>俯视采用正交投影，比例尺随缩放更新。透视视图仅标注地面中心的投影参考，不能用固定屏幕比例测量；爆炸拆解时隐藏距离标注。</dd><dt>关于柜门与拆解</dt><dd>模型展示平开柜门的开启关系，打开时会占用局部换衣空间；最终门型可改移门。爆炸视图只解释部件关系，不代表安装顺序。人物与椅位是占用空间示意。</dd><dt>A 与 B 的取舍</dt><dd>A：2000 宽主柜＋700 次净衣＋1000 抽屉＋1100 化妆台。B：2900 主柜＋600 次净衣＋700 抽屉＋侧向 1100 化妆台；化妆有人坐时，右端约 1000 衣柜需错时开启。</dd></dl><p class="dialog-foot">单位 mm。家具下单前复核完成面、门套、五金和柜背固定节点。</p></dialog>
+<script type="module" src="./app.js"></script>
+</body></html>
