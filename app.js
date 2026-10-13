@@ -1,12 +1,12 @@
 import * as THREE from 'three';
 import { OrbitControls } from './OrbitControls.js';
 import { RoundedBoxGeometry } from './RoundedBoxGeometry.js';
-import {buildEnvironment} from './environment.js';
+import {buildEnvironment} from './environment.js?v=b1400';
 
 const $=id=>document.getElementById(id);
 const viewport=$('viewport'), stage=document.querySelector('.stage');
 const query=new URLSearchParams(location.search);
-const state={plan:query.get('plan')==='B'?'B':'A',view:['iso','top','entry','window'].includes(query.get('view'))?query.get('view'):'iso',explode:Math.min(100,Math.max(0,Number(query.get('explode'))||0))/100,doors:false,cut:false,walls:'low',dimensions:true,person:false,ceiling:'outline',curtain:85,sheer:true,theme:query.get('theme')==='walnut'?'walnut':'oak'};
+const state={plan:'B',view:['iso','top','entry','window'].includes(query.get('view'))?query.get('view'):'iso',explode:Math.min(100,Math.max(0,Number(query.get('explode'))||0))/100,doors:false,cut:false,walls:'low',dimensions:true,person:false,ceiling:'outline',curtain:85,sheer:true,theme:query.get('theme')==='walnut'?'walnut':'oak'};
 let renderer;
 try {renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,preserveDrawingBuffer:true});}
 catch(e){$('loading').innerHTML='<p>当前浏览器未能启用 3D 图形加速。</p><p>请用新版 Safari、Chrome 或 Edge 打开此链接。</p>';throw e;}
@@ -35,15 +35,17 @@ let model=new THREE.Group(),dimensions=new THREE.Group(),personGroup=new THREE.G
 scene.add(model,dimensions,personGroup);
 let parts=[],doorParts=[],drawerParts=[],labels=[],pickables=[],highlight=null,selection=null,cameraMove=null,explodeValue=state.explode,doorValue=0,autoPlay=false,lastTime=0,environment=null;
 const info={
- main:{title:'主衣柜',desc:'柜门朝向入口衣帽区，柜背成为卧室的床头背景。模型可打开柜门查看衣杆、层板与叠衣空间。',dims:()=>state.plan==='A'?'宽 2000 × 深 600 × 高 2400（高度暂定）':'宽 2900 × 深 600 × 高 2400（高度暂定）'},
- back:{title:'柜背 / 床头背景',desc:'独立背衬与饰面组成的背景层，遮挡柜内杂物。模型暂留 50 厚，实际固定与隔声节点由现场深化。',dims:()=>`宽 ${state.plan==='A'?2000:2900} × 构造预留 50`},
- vanity:{title:'化妆桌与镜面',desc:()=>state.plan==='A'?'化妆台置于右侧末端，凳子与中间主柜错开。台下留出膝部空间。':'化妆台转向右墙。坐人时与右端衣柜分时使用，右端柜建议收纳低频物品。',dims:()=> '长 1100 × 深 450 × 台高 750（高度暂定）'},
- secondary:{title:'次净衣区',desc:'穿过但暂不洗的衣服单独存放。浅柜使用正面挂钩或短挂，底部预留可取出的洗衣篮，不和干净衣物混放。',dims:()=>state.plan==='A'?'宽 700 × 深 450 × 高 2100（高度暂定）':'宽 600 × 深 400 × 高 2100（高度暂定）'},
- storage:{title:'叠衣与抽屉收纳',desc:'用于内衣、配饰和叠衣。抽屉拉出会临时占用换衣通道；上方保持清爽，避免堆积成为视线负担。',dims:()=>state.plan==='A'?'宽 1000 × 深 450 × 高 850（高度暂定）':'宽 700 × 深 400 × 高 850（高度暂定）'},
- bed:{title:'1.8 米床',desc:'床头紧靠柜背背景，床尾面向外窗。尺寸按床架而非只按床垫计算；更换加长软包床需重新核算床尾余量。',dims:()=> '床垫 1800 × 2000 · 床架 1900 × 2100'},
- stool:{title:'化妆凳 / 坐姿区',desc:'凳高暂按 450，直径约 480。开启人物示意可查看坐姿占用范围，虚线区不是固定家具。',dims:()=> '凳直径 480 · 坐姿示意范围约 550–700'},
- shell:{title:'房间与原入口',desc:'保持原图入口、外窗和左上柱位的关系。墙体高度和窗的立面尺寸仅作为空间示意，可切换低墙、完整墙体和隐藏外墙。',dims:()=> '3800 × 5500 · 原侧向入口约 875'},
- floor:{title:'房间地面',desc:'长向 5500，短向 3800。入口端 2000 留给衣帽区；材质为概念示意，未确定实际地板型号。',dims:()=> '面积约 20.9 ㎡'},
+ main:{title:'01 · 主衣柜',desc:'柜门朝向衣帽区，950 长衣＋950 短衣＋1000 叠衣模块。常用衣物放左侧，右端低频收纳与梳妆错时使用。1400 为柜门关闭时的主过道净深。',dims:()=> '宽 2900 × 深 600 × 高 2400 mm'},
+ back:{title:'02 · 柜背 / 床头背景',desc:'床头贴柜背，50 mm 为背衬与饰面构造预留。固定方式及隔声节点需现场深化。',dims:()=> '宽 2900 × 厚 50 × 高 2400 mm'},
+ secondary:{title:'03 · 次净衣柜',desc:'紧邻入口，开放浅柜用正面挂钩存放次净衣。上层放包，底部放可取出的洗衣篮。',dims:()=> '宽 700 × 深 450 × 高 2100 mm'},
+ storage:{title:'04 · 抽屉收纳柜',desc:'三层抽屉放内衣、配饰和叠衣。打开约 250 mm 后，主通道局部约剩 1150 mm。',dims:()=> '宽 900 × 深 450 × 高 850 mm'},
+ vanity:{title:'05 · L 形转角化妆桌',desc:'端墙主台 1300×450，右墙延伸 650×450，外包尺寸 1300×1100。膝部净宽约 825；右端台与主柜间净距 750，使用时避开右端柜门。',dims:()=> '外包 1300 × 1100 · 两边台深 450 · 高 750 mm'},
+ vanity_storage:{title:'06 · 化妆桌下收纳柜',desc:'藏在右侧延伸台下，把抽屉留给化妆品和吹风机，正面坐姿膝部空间保持空置。',dims:()=> '宽 450 × 深 500 × 高 720 mm'},
+ mirror:{title:'07 · 梳妆镜',desc:'位于端墙主台上方，镜底离地 900。镜面为材质示意，不是实时反射。',dims:()=> '宽 900 × 高 800 × 厚 20 mm'},
+ stool:{title:'08 · 化妆凳',desc:'凳子置于主台中央，使用后推入台下；人物显示仅用于判断坐姿占位。',dims:()=> '直径 480 × 高 450 mm'},
+ bed:{title:'09 · 1.8 米床',desc:'床头靠柜背，床尾朝窗。床架到窗墙 900，扣除 150 窗帘预留，床尾净距 750。左右床侧各 950（柜端主入口净宽 900）。',dims:()=> '床架 1900 × 2100 × 高 300；床垫 1800 × 2000 × 厚 230 mm'},
+ shell:{title:'房间与原入口',desc:'保留原左侧入口、外窗与柱位关系。墙窗立面为概念示意。',dims:()=> '宽 3800 × 长 5500 · 原侧向入口约 875 mm'},
+ floor:{title:'房间地面',desc:'450 端墙家具＋1400 主过道＋600 主柜＋50 柜背＝2500 衣帽区。余下 3000 为睡眠区。',dims:()=> '面积 20.9 ㎡ · 衣帽区进深 2500 mm'},
 };
 function group(parent,key){const g=new THREE.Group();g.userData.key=key;parent.add(g);return g;}
 function component(parent,key,pos=[0,0,0],offset=[0,0,0]){const g=group(parent,key);g.position.set(...pos);parts.push({object:g,base:g.position.clone(),offset:new THREE.Vector3(...offset)});return g;}
@@ -72,55 +74,59 @@ function hanging(parent,left,right,height=1.75){
  for(let i=0;i<count;i++){const x=left+.05+i*(right-left-.1)/(count-1);const cm=mat(colors[i%colors.length]);const h=.64+(i%3)*.09;box(parent,.038,h,.36,[x,height-.1-h/2,0],cm,'main',.015);poly(parent,[[x,height-.015,0],[x,height-.12,-.19],[x,height-.12,.19],[x,height-.015,0]],0x8b887b);}
 }
 function wardrobe(){
- const w=state.plan==='A'?2:2.9,center=state.plan==='A'?0:.45;
- const g=group(model,'main');g.position.set(center,0,1.1);
+ const w=2.9,center=.45;
+ const g=group(model,'main');g.position.set(center,0,.6);
  const body=component(g,'main',[0,0,0],[0,.12,.10]);
  box(body,w,.09,.6,[0,.045,0],M.oak);box(body,.025,2.4,.6,[-w/2+.0125,1.2,0],M.cabinet);box(body,.025,2.4,.6,[w/2-.0125,1.2,0],M.cabinet);
- const sizes=state.plan==='A'?[.8,.8,.4]:[.95,.95,1];let cursor=-w/2;
+ const sizes=[.95,.95,1];let cursor=-w/2;
  sizes.forEach((sw,index)=>{const mid=cursor+sw/2;if(index)box(body,.02,2.3,.56,[cursor,1.2,0],M.inside);
   const inner=component(g,'main',[mid,0,0],[0,.1+index*.1,.12]);
   const sh=component(inner,'main',[0,0,0],[0,.5+index*.12,0]);box(sh,sw-.04,.025,.53,[0,2.04,0],M.inside);box(inner,sw-.04,.23,.39,[0,2.19,-.015],M.linen,'main',.015);
   if(index<2)hanging(inner,-sw/2+.05,sw/2-.05,index===0?1.83:1.93);
   else for(let j=0;j<4;j++){const shelf=component(inner,'main',[0,0,0],[.18,j*.18,.14]);box(shelf,sw-.04,.025,.53,[0,.45+j*.38,0],M.inside);box(shelf,sw-.10,.12,.40,[0,.52+j*.38,-.015],j%2?M.linen:M.cloth,'main',.014);}
   for(let side=0;side<2;side++){const pw=sw/2-.009;const px=side===0?cursor+.006:cursor+sw-.006;
-   const hinge=component(g,'main',[px,0,.306],[side===0?-.12:.12,.08,.9]);const sign=side===0?1:-1;box(hinge,pw,2.29,.022,[sign*pw/2,1.245,0],M.cabinet);box(hinge,.013,.19,.023,[sign*(pw-.06),1.19,.026],M.brass);doorParts.push({object:hinge,sign:side===0?-1:1});
+   const hinge=component(g,'main',[px,0,.289],[side===0?-.12:.12,.08,.9]);const sign=side===0?1:-1;box(hinge,pw,2.29,.022,[sign*pw/2,1.245,0],M.cabinet);box(hinge,.013,.19,.023,[sign*(pw-.06),1.19,0],M.brass);doorParts.push({object:hinge,sign:side===0?-1:1});
   }cursor+=sw;
  });
- const top=component(g,'main',[0,0,0],[0,1.3,0]);box(top,w,.035,.6,[0,2.397,0],M.cabinet);
+ const top=component(g,'main',[0,0,0],[0,1.3,0]);box(top,w,.035,.6,[0,2.3825,0],M.cabinet);
  const back=component(g,'back',[0,0,-.325],[0,.12,-.8]);box(back,w,2.4,.05,[0,1.2,0],M.background);
  // Subtle vertical grain on the bed-facing surface.
- for(let x=-w/2+.055;x<w/2;x+=.11)box(back,.006,2.26,.006,[x,1.2,-.03],M.oak,'back');
+ for(let x=-w/2+.055;x<w/2;x+=.11)box(back,.006,2.26,.004,[x,1.2,-.023],M.oak,'back');
 }
 function lowStorage(){
- const w=state.plan==='A'?1:.7,d=state.plan==='A'?.45:.4,start=state.plan==='A'?1.7:1.6;const[x,z]=world((start+w/2)*1000,d*500);
+ const w=.9,d=.45,start=1.6;const[x,z]=world((start+w/2)*1000,d*500);
  const g=group(model,'storage');g.position.set(x,0,z);
  const carcass=component(g,'storage',[0,0,0],[-.25,.1,.25]);box(carcass,w,.04,d,[0,.04,0],M.oak);box(carcass,w,.80,.022,[0,.40,d/2-.011],M.oak);for(const side of[-1,1])box(carcass,.022,.80,d,[side*(w/2-.011),.40,0],M.oak);
- const top=component(g,'storage',[0,0,0],[-.25,.75,.25]);box(top,w+.02,.035,d+.012,[0,.82,0],M.ivory);
- for(let i=0;i<3;i++){const dr=component(g,'storage',[0,.14+i*.245,-d/2-.015],[-.25,.12,-.5-i*.09]);box(dr,w-.03,.225,.035,[0,0,0],M.inside);box(dr,.20,.008,.03,[0,.065,-.025],M.brass);box(dr,w-.065,.012,d-.07,[0,-.098,(d-.07)/2],M.inside);for(const side of[-1,1])box(dr,.012,.17,d-.07,[side*(w/2-.04),-.016,(d-.07)/2],M.inside);box(dr,w-.07,.17,.012,[0,-.016,d-.07],M.inside);drawerParts.push({object:dr,axis:'z',amount:-.20,base:dr.position.clone()});}
+ const top=component(g,'storage',[0,0,0],[-.25,.75,.25]);box(top,w,.035,d,[0,.8325,0],M.ivory);
+ for(let i=0;i<3;i++){const dr=component(g,'storage',[0,.16+i*.245,-d/2+.0175],[-.25,.12,-.5-i*.09]);box(dr,w-.03,.225,.035,[0,0,0],M.inside);box(dr,.20,.008,.03,[0,.065,0],M.brass);box(dr,w-.065,.012,d-.07,[0,-.098,(d-.07)/2],M.inside);for(const side of[-1,1])box(dr,.012,.17,d-.07,[side*(w/2-.04),-.016,(d-.07)/2],M.inside);box(dr,w-.07,.17,.012,[0,-.016,d-.07],M.inside);drawerParts.push({object:dr,axis:'z',amount:-.25,base:dr.position.clone()});}
  const tray=component(g,'storage',[0,.865,0],[-.25,.8,.2]);cyl(tray,.13,.13,.018,[0,0,0],M.oak,'storage');cyl(tray,.045,.035,.09,[.02,.045,.01],M.pot,'storage');
 }
 function secondary(){
- const w=state.plan==='A'?.7:.6,d=state.plan==='A'?.45:.4;const[x,z]=world((1+w/2)*1000,d*500);const g=group(model,'secondary');g.position.set(x,0,z);
+ const w=.7,d=.45;const[x,z]=world((.9+w/2)*1000,d*500);const g=group(model,'secondary');g.position.set(x,0,z);
  const body=component(g,'secondary',[0,0,0],[-.65,.16,.35]);box(body,w,2.1,.02,[0,1.05,d/2-.01],M.oak);for(const x of[-w/2+.012,w/2-.012])box(body,.024,2.1,d,[x,1.05,0],M.oak);box(body,w,.04,d,[0,.06,0],M.oak);
- const top=component(g,'secondary',[0,0,0],[-.65,.85,.35]);box(top,w,.025,d,[0,2.1,0],M.oak);box(body,w-.04,.025,d,[0,1.82,0],M.inside);
+ const top=component(g,'secondary',[0,0,0],[-.65,.85,.35]);box(top,w,.025,d,[0,2.0875,0],M.oak);box(body,w-.04,.025,d,[0,1.82,0],M.inside);
  for(let i=0;i<2;i++){const px=(i-.5)*w*.45;rod(body,[px,1.68,d/2-.03],[px,1.68,-.05],.015,M.brass,'secondary');box(body,.24,.72,.065,[px,1.22,-.055],i?M.linen:M.cloth,'secondary',.018);}
  box(body,w-.13,.34,d-.08,[0,.25,0],M.pot,'secondary',.035);
  for(let y=.12;y<.4;y+=.045)box(body,w-.12,.006,.006,[0,y,-d/2+.035],M.oak,'secondary');
 }
 function vanity(){
- const g=group(model,'vanity');if(state.plan==='A'){g.position.set(1.35,0,2.525);}else{g.position.set(1.675,0,2.2);g.rotation.y=Math.PI/2;}
- const base=component(g,'vanity',[0,0,0],[.4,.10,.4]);
- for(const x of[-.50,.50])box(base,.032,.715,.36,[x,.3575,0],M.oak);
- const top=component(g,'vanity',[0,0,0],[.4,.75,.4]);box(top,1.1,.045,.45,[0,.7275,0],M.ivory,'vanity',.014);
- box(base,.98,.085,.36,[0,.66,.02],M.oak);box(base,.15,.007,.022,[0,.658,-.17],M.brass);
- const mirror=component(g,'vanity',[0,0,0],[.4,.55,.8]);box(mirror,.76,.96,.032,[0,1.34,.23],M.brass,'vanity',.045);box(mirror,.717,.915,.010,[0,1.34,.208],M.mirror,'vanity',.04);
- cyl(top,.037,.037,.09,[-.37,.805,.015],M.pot,'vanity');cyl(top,.021,.021,.10,[-.25,.8,.03],M.glass,'vanity');
- const stool=group(model,'stool');const [sx,sz]=state.plan==='A'?world(3250,850):world(3000,620);stool.position.set(sx,0,sz);
- const seat=component(stool,'stool',[0,0,0],[.65,.25,.2]);cyl(seat,.24,.24,.10,[0,.43,0],M.linen,'stool',32);
- for(const x of[-.13,.13])for(const z of[-.13,.13])rod(seat,[x,.38,z],[x*1.25,.015,z*1.25],.017,M.oak,'stool');
+ const g=group(model,'vanity');const[x,z]=world(3150,225);g.position.set(x,0,z);
+ const top=component(g,'vanity',[0,0,0],[.4,.75,.4]);
+ box(top,1.3,.03,.45,[0,.735,0],M.ivory,'vanity');
+ box(top,.45,.03,.65,[.425,.735,-.55],M.ivory,'vanity');
+ const base=component(g,'vanity',[0,0,0],[.4,.1,.4]);
+ box(base,.025,.72,.42,[-.6375,.36,0],M.oak,'vanity');
+ box(base,.825,.07,.40,[-.2125,.67,0],M.oak,'vanity');
+ const pedestal=component(g,'vanity_storage',[.425,0,-.625],[.8,.15,.3]);
+ box(pedestal,.45,.72,.5,[0,.36,0],M.oak,'vanity_storage');
+ for(let j=0;j<3;j++){box(pedestal,.016,.21,.474,[-.217,.14+j*.225,0],M.inside,'vanity_storage');box(pedestal,.012,.007,.14,[-.219,.20+j*.225,0],M.brass,'vanity_storage');}
+ const mirror=component(g,'mirror',[-.10,0,.215],[.4,.6,.6]);box(mirror,.9,.8,.02,[0,1.3,0],M.brass,'mirror');box(mirror,.87,.77,.003,[0,1.3,-.008],M.mirror,'mirror');
+ const stool=group(model,'stool');const[sx,sz]=world(2925,790);stool.position.set(sx,0,sz);
+ const seat=component(stool,'stool',[0,0,0],[.65,.25,.2]);cyl(seat,.24,.24,.10,[0,.40,0],M.linen,'stool',32);
+ for(const x of[-.13,.13])for(const z of[-.13,.13])rod(seat,[x,.35,z],[x*1.25,.015,z*1.25],.017,M.oak,'stool');
 }
 function bed(){
- const g=group(model,'bed');g.position.set(0,0,-.30);
+ const g=group(model,'bed');g.position.set(0,0,-.80);
  const frame=component(g,'bed',[0,0,0],[0,.12,-.7]);box(frame,1.9,.23,2.1,[0,.185,0],M.oak,'bed',.045);box(frame,1.78,.12,1.98,[0,.065,0],M.oak,'bed',.018);
  const mattress=component(g,'bed',[0,0,0],[0,.65,-.7]);box(mattress,1.8,.23,2,[0,.415,0],M.cloth,'bed',.065);
  const blanket=component(g,'bed',[0,0,0],[0,1.05,-.72]);box(blanket,1.82,.10,1.40,[0,.565,-.30],M.linen,'bed',.048);box(blanket,1.82,.075,.22,[0,.62,.30],M.linen,'bed',.025);
@@ -133,20 +139,21 @@ function makePerson(parent,x,z,seated=false,rotate=0){const g=new THREE.Group();
 function buildDimensions(){
  dimension([-1.9,.04,-3.05],[1.9,.04,-3.05],'3800',[0,.07,-3.16]);
  dimension([-2.33,.04,-2.75],[-2.33,.04,2.75],'5500',[-2.39,.06,-.15]);
- dimension([2.19,.04,.75],[2.19,.04,2.75],'衣帽区 2000',[2.25,.08,1.75]);
- dimension([0,.08,-2.60],[0,.08,-1.35],'床尾净距 1250',[0,.12,-2.04]);
- label(state.plan==='A'?'换衣净深 900':'换衣净深 950',[-.13,.08,1.82],'note');
- label('入口约 875',[-2.13,.08,2.26],'note');
- poly(dimensions,[[-2.4,.035,2.3],[-1.45,.035,2.3],[-1.45,.035,-.1]],0xb19159,true);
- poly(dimensions,[[-1.54,.035,.04],[-1.45,.035,-.1],[-1.36,.035,.04]],0xb19159);
- if(state.plan==='A'){poly(dimensions,[[1.45,.035,-.1],[1.45,.035,1.15]],0xb19159,true);label('通道 900',[1.46,.1,.79],'note');}
- label('通道 900',[-1.47,.10,.8],'note');label('窗侧',[.3,.08,-2.7],'note');
+ dimension([2.19,.04,.25],[2.19,.04,2.75],'衣帽区 2500',[2.25,.08,1.50]);
+ dimension([-.1,.08,.9],[-.1,.08,2.3],'主过道 1400',[-.1,.12,1.58]);
+ dimension([0,.08,-2.60],[0,.08,-1.85],'床尾净距 750',[0,.12,-2.22]);
+ label('入口约 875',[-2.13,.08,2.26],'note');label('通向床区 900',[-1.45,.1,.62],'note');
+ poly(dimensions,[[-2.4,.035,2.3],[-1.45,.035,2.3],[-1.45,.035,-.3]],0xb19159,true);
+ label('01 主柜 2900×600×2400',[.45,2.47,.6],'furniture');
+ label('03 次净衣 700×450×2100',[-.65,2.16,2.52],'furniture');
+ label('04 抽屉柜 900×450×850',[.15,.93,2.52],'furniture');
+ label('05 转角桌 1300×1100 · H750',[1.25,.82,2.1],'furniture');
+ label('09 床架 1900×2100',[0,.72,-.8],'furniture');
 }
 function buildPeople(){
- makePerson(personGroup,-.25,1.75,false,Math.PI);
- const[sx,sz]=state.plan==='A'?world(3250,850):world(3000,620);makePerson(personGroup,sx,sz,true,state.plan==='A'?0:Math.PI/2);
- const rect=state.plan==='A'?[1.075,1.45,.55,.85]:[.75,1.75,.70,.77];const[x,z,w,d]=rect;
- poly(personGroup,[[x,.02,z],[x+w,.02,z],[x+w,.02,z+d],[x,.02,z+d],[x,.02,z]],0xb18465,true);
+ makePerson(personGroup,-.25,1.6,false,Math.PI);
+ const[sx,sz]=world(2925,790);makePerson(personGroup,sx,sz,true,0);
+ poly(personGroup,[[.725,.02,1.67],[1.325,.02,1.67],[1.325,.02,2.45],[.725,.02,2.45],[.725,.02,1.67]],0xb18465,true);
 }
 function rebuild(){
  clearSelection();environment?.dispose();model.traverse(o=>{if(o.geometry)o.geometry.dispose();});dimensions.traverse(o=>{if(o.geometry)o.geometry.dispose();});personGroup.traverse(o=>{if(o.geometry)o.geometry.dispose();});
@@ -167,10 +174,10 @@ function applyTransforms(){
  personGroup.visible=state.person&&explodeValue<.1;dimensions.visible=state.dimensions&&explodeValue<.1;
  if(highlight)highlight.update();
 }
-function updatePlanUI(){document.querySelectorAll('[data-plan]').forEach(b=>{const active=b.dataset.plan===state.plan;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active));});$('stage-plan').textContent=state.plan;$('stage-name').textContent=state.plan==='A'?'中置背柜 · 双侧通行':'长排背柜 · 侧向梳妆';$('wardrobe-width').innerHTML=(state.plan==='A'?'2.0':'2.9')+'<small>m</small>';showInfo();}
-function showInfo(key){const d=info[key];$('selected-tag').textContent=d?'部件详情':'方案 '+state.plan;$('part-title').textContent=d?d.title:state.plan==='A'?'左侧换衣，右侧化妆':'把容量留给衣柜';$('part-description').textContent=d?(typeof d.desc==='function'?d.desc():d.desc):state.plan==='A'?'主衣柜居中，化妆台放在右侧末端。坐下化妆时，另一人仍可从左侧拿取衣物。':'主衣柜增加到 2900 宽。常用衣物放左段，化妆与右端低频柜分时使用。';$('part-dimensions').textContent=d?d.dims():state.plan==='A'?'两侧通道 900 · 换衣净深 900':'左侧通道 900 · 换衣净深 950';$('clear-selection').hidden=!d;}
+function updatePlanUI(){$('stage-plan').textContent='B';$('stage-name').textContent='长排背柜 · 转角梳妆';$('wardrobe-width').innerHTML='2.9<small>m</small>';showInfo();}
+function showInfo(key){const d=info[key];$('selected-tag').textContent=d?'部件详情':'方案 B';$('part-title').textContent=d?d.title:'让换衣与梳妆各有位置';$('part-description').textContent=d?(typeof d.desc==='function'?d.desc():d.desc):'入口端墙依次布置次净衣、抽屉收纳和 L 形化妆桌。主过道净深 1400；右侧转角台与衣柜之间局部 750，化妆时右端柜错时开启。';$('part-dimensions').textContent=d?d.dims():'衣帽区 2500 · 主过道 1400 · 床尾净距 750';$('clear-selection').hidden=!d;}
 function clearSelection(){if(highlight){scene.remove(highlight);highlight.geometry.dispose();highlight.material.dispose();highlight=null;}selection=null;showInfo();}
-function select(mesh){clearSelection();if(!mesh?.userData.key)return;selection=mesh;let target=mesh;while(target.parent&&target.parent!==model&&target.parent.userData.key===mesh.userData.key)target=target.parent;highlight=new THREE.BoxHelper(target,0xaa8857);highlight.material.transparent=true;highlight.material.opacity=.6;scene.add(highlight);showInfo(mesh.userData.key);if(viewport.clientWidth<700)toast(info[mesh.userData.key]?.title||'部件已选中');}
+function select(mesh){clearSelection();if(!mesh?.userData.key)return;selection=mesh;let target=mesh;while(target.parent&&target.parent!==model&&target.parent.userData.key===mesh.userData.key)target=target.parent;highlight=new THREE.BoxHelper(target,0xaa8857);highlight.material.transparent=true;highlight.material.opacity=.6;scene.add(highlight);showInfo(mesh.userData.key);if(viewport.clientWidth<700){document.body.classList.add('panel-open');document.querySelector('.sidebar').scrollTop=$('inspector').offsetTop-65;}}
 const views={iso:{position:[6.8,8.6,-7.8],target:[0,.35,0]},top:{position:[0,12,.001],target:[0,0,0]},entry:{position:[-6.8,4.3,8],target:[0,.8,1]},window:{position:[5.8,5.7,-8],target:[0,.65,0]}};
 function useCamera(kind){camera=kind==='top'?orthographic:perspective;controls.object=camera;controls.enableRotate=kind!=='top';controls.mouseButtons.LEFT=kind==='top'?THREE.MOUSE.PAN:THREE.MOUSE.ROTATE;controls.touches.ONE=kind==='top'?THREE.TOUCH.PAN:THREE.TOUCH.ROTATE;resize();}
 function setView(name,immediate=false){state.view=name;useCamera(name);const v=views[name];const mobile=viewport.clientWidth<500;const mult=mobile?1.90:1;const dest=new THREE.Vector3(...v.position).multiplyScalar(mult);const target=new THREE.Vector3(...v.target);if(immediate){camera.position.copy(dest);controls.target.copy(target);controls.update();}else{cameraMove={from:camera.position.clone(),to:dest,fromTarget:controls.target.clone(),toTarget:target,start:performance.now()};}document.querySelectorAll('[data-view]').forEach(b=>{b.classList.toggle('active',b.dataset.view===name);b.setAttribute('aria-pressed',String(b.dataset.view===name));});}
@@ -181,7 +188,7 @@ const raycaster=new THREE.Raycaster(),mouse=new THREE.Vector2();let pointerStart
 renderer.domElement.addEventListener('pointerdown',e=>{pointerStart={x:e.clientX,y:e.clientY,time:performance.now()};});
 renderer.domElement.addEventListener('pointerup',e=>{if(!pointerStart||Math.hypot(e.clientX-pointerStart.x,e.clientY-pointerStart.y)>6||performance.now()-pointerStart.time>500)return;const r=renderer.domElement.getBoundingClientRect();mouse.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);raycaster.setFromCamera(mouse,camera);const hit=raycaster.intersectObjects(pickables).find(h=>{let o=h.object;while(o){if(!o.visible)return false;o=o.parent;}return !state.cut||h.point.y<=1.2||['shell','floor'].includes(h.object.userData.key);});select(hit?.object);});
 renderer.domElement.addEventListener('contextmenu',e=>e.preventDefault());
-document.querySelectorAll('[data-plan]').forEach(b=>b.addEventListener('click',()=>{state.plan=b.dataset.plan;rebuild();}));
+
 document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>setView(b.dataset.view)));
 for(const id of['cut','doors','dimensions','person'])$(id).addEventListener('change',e=>{state[id]=e.target.checked;updateViewSettings();});
 $('walls').addEventListener('change',e=>{state.walls=e.target.value;updateViewSettings();});
@@ -195,9 +202,9 @@ $('zoom-in').addEventListener('click',()=>zoom(.85));$('zoom-out').addEventListe
 $('fullscreen').addEventListener('click',async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else if(stage.requestFullscreen)await stage.requestFullscreen();else toast('此浏览器不支持全屏，请横屏查看。');}catch{toast('此浏览器暂不支持全屏。');}});
 $('about').addEventListener('click',()=>$('about-dialog').showModal());document.querySelector('#about-dialog .dialog-close').addEventListener('click',()=>$('about-dialog').close());$('about-dialog').addEventListener('click',e=>{if(e.target===$('about-dialog')){const r=e.target.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)e.target.close();}});
 let toastTimer;function toast(message){$('toast').textContent=message;$('toast').classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').classList.remove('show'),3200);}
-$('share').addEventListener('click',async()=>{const url=new URL(location.href);url.search='';url.searchParams.set('plan',state.plan);url.searchParams.set('view',state.view);url.searchParams.set('theme',state.theme);if(state.explode>.01)url.searchParams.set('explode',Math.round(state.explode*100));try{if(navigator.share&&matchMedia('(max-width:700px)').matches)await navigator.share({title:'濮院卧室 · 方案 '+state.plan,url:url.href});else{await navigator.clipboard.writeText(url.href);toast('已复制链接，包含当前方案与拆解状态');}}catch(e){if(e.name!=='AbortError')prompt('复制此链接分享',url.href);}});
-$('snapshot').addEventListener('click',()=>{renderer.render(scene,camera);const output=document.createElement('canvas');const src=renderer.domElement;output.width=src.width;output.height=src.height+100;const cx=output.getContext('2d');cx.fillStyle='#f4f5ed';cx.fillRect(0,0,output.width,output.height);cx.drawImage(src,0,0);cx.fillStyle='#304b3e';cx.font='24px sans-serif';cx.fillText('濮院卧室 / 方案 '+state.plan+' · '+$('stage-name').textContent,30,src.height+43);cx.fillStyle='#808977';cx.font='16px sans-serif';cx.fillText('3800 × 5500 mm | 入口 2000 衣帽区 | 概念模型，家具与窗高待复核',30,src.height+73);const a=document.createElement('a');a.download='濮院卧室-方案'+state.plan+'.png';a.href=output.toDataURL('image/png');a.click();toast('视图已保存');});
-function updateLabels(){const w=viewport.clientWidth,h=viewport.clientHeight;for(const l of labels){const visible=state.dimensions&&explodeValue<.1;const p=l.pos.clone().project(camera);const x=(p.x*.5+.5)*w,y=(-p.y*.5+.5)*h;const inBounds=p.z<1&&p.z>-1&&x>25&&x<w-25&&y>(w<500?108:145)&&y<h-(w<500?120:145);const mobileSuppressed=w<500&&l.style==='note';l.el.hidden=!visible||!inBounds||mobileSuppressed;if(!l.el.hidden){l.el.style.left=x+'px';l.el.style.top=y+'px';}}}
+$('share').addEventListener('click',async()=>{const url=new URL(location.href);url.search='';url.searchParams.set('v','b1400');url.searchParams.set('plan',state.plan);url.searchParams.set('view',state.view);url.searchParams.set('theme',state.theme);if(state.explode>.01)url.searchParams.set('explode',Math.round(state.explode*100));try{if(navigator.share&&matchMedia('(max-width:700px)').matches)await navigator.share({title:'濮院卧室 · 方案 '+state.plan,url:url.href});else{await navigator.clipboard.writeText(url.href);toast('已复制链接，包含当前方案与拆解状态');}}catch(e){if(e.name!=='AbortError')prompt('复制此链接分享',url.href);}});
+$('snapshot').addEventListener('click',()=>{renderer.render(scene,camera);const output=document.createElement('canvas');const src=renderer.domElement;output.width=src.width;output.height=src.height+100;const cx=output.getContext('2d');cx.fillStyle='#f4f5ed';cx.fillRect(0,0,output.width,output.height);cx.drawImage(src,0,0);for(const l of labels){if(l.el.hidden)continue;const scale=src.width/viewport.clientWidth;const x=parseFloat(l.el.style.left)*scale,y=parseFloat(l.el.style.top)*scale;cx.font=(11*scale)+'px sans-serif';const tw=cx.measureText(l.el.textContent).width;cx.fillStyle='#fafbf4e8';cx.fillRect(x-tw/2-4*scale,y-9*scale,tw+8*scale,18*scale);cx.fillStyle='#304b3e';cx.fillText(l.el.textContent,x-tw/2,y+4*scale);}cx.fillStyle='#304b3e';cx.font='24px sans-serif';cx.fillText('濮院卧室 / 方案 '+state.plan+' · '+$('stage-name').textContent,30,src.height+43);cx.fillStyle='#808977';cx.font='16px sans-serif';cx.fillText('3800 × 5500 mm | 入口 2500 衣帽区 | 概念模型，家具与窗高待复核',30,src.height+73);const a=document.createElement('a');a.download='濮院卧室-方案'+state.plan+'.png';a.href=output.toDataURL('image/png');a.click();toast('视图已保存');});
+function updateLabels(){const w=viewport.clientWidth,h=viewport.clientHeight;for(const l of labels){const visible=state.dimensions&&explodeValue<.1;const p=l.pos.clone().project(camera);const x=(p.x*.5+.5)*w,y=(-p.y*.5+.5)*h;const inBounds=p.z<1&&p.z>-1&&x>25&&x<w-25&&y>(w<500?108:145)&&y<h-(w<500?120:145);const mobileSuppressed=w<700&&(l.style==='note'||l.style==='furniture');l.el.hidden=!visible||!inBounds||mobileSuppressed;if(!l.el.hidden){l.el.style.left=x+'px';l.el.style.top=y+'px';}}}
 function frame(time){requestAnimationFrame(frame);const dt=Math.min((time-lastTime)/1000,.05);lastTime=time;if(autoPlay){const t=(time-autoStart)/1000;if(t<3)state.explode=autoBase+(1-autoBase)*(1-Math.cos(t/3*Math.PI))/2;else if(t<5)state.explode=1;else if(t<8)state.explode=(1+Math.cos((t-5)/3*Math.PI))/2;else{autoPlay=false;state.explode=0;$('animate-explode').textContent='演示 ↗';}explodeUI();}
  const f=1-Math.exp(-dt*8);explodeValue+=(state.explode-explodeValue)*f;doorValue+=((state.doors?1:0)-doorValue)*f;applyTransforms();
  if(cameraMove){const t=Math.min(1,(time-cameraMove.start)/850),s=t*t*(3-2*t);camera.position.lerpVectors(cameraMove.from,cameraMove.to,s);controls.target.lerpVectors(cameraMove.fromTarget,cameraMove.toTarget,s);if(t===1)cameraMove=null;}
@@ -220,5 +227,10 @@ $('ceiling').addEventListener('change',e=>state.ceiling=e.target.value);
 document.querySelectorAll('[data-theme]').forEach(b=>b.addEventListener('click',()=>{state.theme=b.dataset.theme;syncEnvironmentUI();}));
 function updateScale(){const el=document.querySelector('.scale-note');el.hidden=explodeValue>.02;if(el.hidden)return;const a=new THREE.Vector3(-.5,.01,0).project(camera),b=new THREE.Vector3(.5,.01,0).project(camera);let px=Math.hypot((a.x-b.x)*viewport.clientWidth/2,(a.y-b.y)*viewport.clientHeight/2),metres=1;while(px>150){px/=2;metres/=2;}while(px<50&&px>0){px*=2;metres*=2;}if(!Number.isFinite(px)){el.hidden=true;return;}$('scale-bar').style.width=px+'px';$('scale-text').textContent=metres+' m · '+(camera.isOrthographicCamera?'正交俯视比例尺':'地面中心投影参考');}
 function closeSheet(){document.body.classList.remove('panel-open');document.querySelectorAll('[data-sheet]').forEach(b=>b.classList.remove('active'));}
-document.querySelectorAll('[data-sheet]').forEach(b=>b.addEventListener('click',()=>{document.body.classList.add('panel-open');document.querySelectorAll('[data-sheet]').forEach(v=>v.classList.toggle('active',v===b));const selector={plans:'.plan-switch',finishes:'.finish-controls',more:'.controls'}[b.dataset.sheet];const panel=document.querySelector('.sidebar'),target=document.querySelector(selector);panel.scrollTop=target.offsetTop-65;}));
+document.querySelectorAll('[data-sheet]').forEach(b=>b.addEventListener('click',()=>{document.body.classList.add('panel-open');document.querySelectorAll('[data-sheet]').forEach(v=>v.classList.toggle('active',v===b));const selector={plans:'.layout-summary',finishes:'.finish-controls',more:'.controls'}[b.dataset.sheet];const panel=document.querySelector('.sidebar'),target=document.querySelector(selector);panel.scrollTop=target.offsetTop-65;}));
 $('close-sheet').addEventListener('click',closeSheet);$('sheet-scrim').addEventListener('click',closeSheet);
+
+for(const b of document.querySelectorAll('[data-dimensions]'))b.addEventListener('click',()=>{$('dimensions-dialog').showModal();$('dimensions-dialog').scrollTop=0;});
+$('close-dimensions').addEventListener('click',()=>$('dimensions-dialog').close());
+$('plan-zoom').addEventListener('click',()=>{const large=$('plan-drawing').classList.toggle('enlarged');$('plan-zoom').textContent=large?'适合屏幕':'放大尺寸图';});
+for(const b of document.querySelectorAll('[data-part]'))b.addEventListener('click',()=>{$('dimensions-dialog').close();const mesh=pickables.find(m=>m.userData.key===b.dataset.part);select(mesh);});

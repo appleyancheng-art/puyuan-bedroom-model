@@ -24,11 +24,11 @@ export function buildEnvironment(api){
  for(const side of[-1,1]){
   const geo=new THREE.PlaneGeometry(1.85,2.7,56,24);const pos=geo.attributes.position;
   for(let i=0;i<pos.count;i++){const x=pos.getX(i),y=pos.getY(i);pos.setZ(i,Math.sin((x+.925)*Math.PI*14)*.04+.008*Math.sin(y*7+x*3));}geo.computeVertexNormals();
-  const mesh=new THREE.Mesh(geo,fabric);mesh.position.set(side*.925,1.39,-2.57);mesh.castShadow=true;mesh.receiveShadow=true;mesh.userData.key='curtain';curtains.add(mesh);api.pickables.push(mesh);curtainPanels.push({mesh,side});
+  const mesh=new THREE.Mesh(geo,fabric);mesh.position.set(side*.925,1.39,-2.65);mesh.castShadow=true;mesh.receiveShadow=true;mesh.userData.key='curtain';curtains.add(mesh);api.pickables.push(mesh);curtainPanels.push({mesh,side});
  }
- const sheerPlane=new THREE.Mesh(new THREE.PlaneGeometry(3.55,2.65,1,1),sheer);sheerPlane.position.set(.1,1.4,-2.67);curtains.add(sheerPlane);
- box(curtains,3.75,.024,.06,[.02,2.775,-2.62],M.rail,'curtain');
- info.ceiling={title:'原图吊顶分区',desc:'入口段净标高 2500；主睡眠区 2800；窗侧盒体标高按原图 2900 示意。2030 + 120 + 3155 + 200 为原图长度链。模型总长按 5500 取整。',dims:()=> '入口 2500 / 主区 2800 / 窗侧灯槽 2900'};
+ const sheerPlane=new THREE.Mesh(new THREE.PlaneGeometry(3.55,2.65,1,1),sheer);sheerPlane.position.set(.1,1.4,-2.70);curtains.add(sheerPlane);
+ box(curtains,3.75,.024,.06,[.02,2.775,-2.68],M.rail,'curtain');
+ info.ceiling={title:'原图吊顶分区',desc:'入口段净标高 2500；主睡眠区 2800；窗侧盒体标高按原图 2900 示意。2030 + 120 + 3155 + 200 为原图长度链。模型总长按 5500 取整。',dims:()=> '入口 2500 / 主区 2800 / 窗侧盒体 2900'};
  info.curtain={title:'窗帘 / 双层轨道',desc:'沿原图窗侧与约 200 窗帘盒布置。织物、褶皱和双层做法为材质提案；窗帘高度、窗洞立面需现场复核。',dims:()=> '布帘 + 纱帘 · 窗帘盒原图约 200'};
  info.window={title:'外窗',desc:'位置沿原平面保留，窗台与窗高是三维示意，尚无该窗完整立面实测数据。',dims:()=> '示意窗台 850 / 窗高 1850，待现场复核'};
  info.ac={title:'中央空调风口',desc:'按原图入口侧机位关系示意回风/送风面，非灯具。新衣柜顶部和设备检修空间需联合深化。',dims:()=> '位置沿原图比例示意 · 风口规格待深化'};
