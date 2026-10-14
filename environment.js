@@ -40,7 +40,7 @@ export function buildEnvironment(api){
   const openness=current.curtain/100;
   curtainPanels.forEach(({mesh,side})=>{const width=1.85*(1-.8*openness);mesh.scale.x=width/1.85;mesh.position.x=side*(1.85-width/2);});
   sheerPlane.visible=current.sheer;window.visible=current.walls!=='off';
-  if(lastTheme!==current.theme){lastTheme=current.theme;const dark=current.theme==='walnut';M.oak.color.set(dark?'#735039':'#c2a67f');M.background.color.set(dark?'#a58a6b':'#d3c4a9');M.cabinet.color.set(dark?'#aca58f':'#bec7b5');M.wall.color.set(dark?'#c5bdad':'#e5e6de');M.floor.color.set(dark?'#bda88a':'#ffffff');M.linen.color.set(dark?'#a89f8c':'#d4d8c7');fabric.color.set(dark?'#aaa18e':'#d5c8b3');}
+  if(lastTheme!==current.theme){lastTheme=current.theme;const dark=current.theme==='walnut';M.oak.color.set(dark?'#735039':'#c2a67f');M.background.color.set(dark?'#ded5c5':'#e6dfd0');M.cabinet.color.set(dark?'#e6dfd2':'#e6e7dc');M.wall.color.set(dark?'#c5bdad':'#e5e6de');M.floor.color.set(dark?'#bda88a':'#ffffff');M.linen.color.set(dark?'#a89f8c':'#d4d8c7');fabric.color.set(dark?'#aaa18e':'#d5c8b3');}
  }
  return {update,dispose(){for(const m of[white,fabric,sheer])m.dispose();}};
 }
